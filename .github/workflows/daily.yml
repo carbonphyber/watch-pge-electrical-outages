@@ -1,0 +1,23 @@
+# /.github/workflows/daily.yml
+# based on https://github.com/carbonphyber/watch-epa-superfund-sites/blob/main/.github/workflows/daily.yml
+on:
+  schedule:
+    - cron:  '*/10 * * * *' # Every 10 minutes
+name: Pull Data and Build
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Log Python location
+      run: which python
+    - name: Scrape
+      run: |
+        curl -o data/pge-electrical-outages-raw.json --no-progress-meter "https://apigprd.cloud.pge.com/myaccount/v1/cocoutage/outages/getOutagesRegions?regionType=city&expand=true&_=$(date +%s)"
+    - name: Pretty Print the JSON
+      run: |
+        cat data/pge-electrical-outages-raw.json | python -m json.tool > data/pge-electrical-outages.json
+    - uses: mikeal/publish-to-github-action@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # GitHub sets this for you
